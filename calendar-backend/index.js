@@ -131,6 +131,55 @@ app.post("/add-event", async (req, res) => {
   }
 });
 
+app.delete("/delete-event/:eventId", async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const { eventId } = req.params;
+
+    // Validate Request Data
+    if (!eventId) {
+      return res.status(400).json({ error: "Missing required field: eventId" });
+    }
+
+    // Ensure OAuth Credentials are Set
+    if (!oauth2Client.credentials) {
+      return res.status(401).json({ error: "Google authentication required" });
+    }
+
+    const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+
+    // Find the event in MongoDB
+    const event = await Event.findOne({ _id: eventId, userId: req.session.user.id });
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    console.log("Deleting event with Google Event ID:", event.googleEventId);
+
+    // Delete from Google Calendar
+    if (event.googleEventId) {
+      await calendar.events.delete({
+        calendarId: "primary",
+        eventId: event.googleEventId,
+      });
+      console.log("Event deleted from Google Calendar");
+    }
+
+    // Delete from MongoDB
+    await Event.deleteOne({ _id: eventId });
+    console.log("Event deleted from MongoDB");
+
+    res.json({ message: "Event deleted successfully!" });
+  } catch (error) {
+    console.error("Error deleting event:", error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data || error.message });
+  }
+});
+
+
 // Get Events from MongoDB
 app.get("/get-events", async (req, res) => {
   try {
