@@ -87,18 +87,30 @@ const MyCalendar = () => {
       alert("Error adding event");
     }
   };
+  const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      const response = await fetch(`http://localhost:5000/delete-event/${eventId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.ok) {
+        alert("Event deleted successfully!");
+        fetchEvents();
+      } else {
+        alert("Failed to delete event");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Error deleting event");
+    }
+  };
+  
   const CustomEvent = ({ event }) => (
     <div
-      style={{
-        cursor: "pointer",
-        padding: "5px",
-        backgroundColor: "#3174ad",
-        color: "white",
-        borderRadius: "5px",
-      }}
-      title={`${event.title}\n${
-        event.description
-      }\nParticipants: ${event.participants.join(", ")}`}
+      style={{ cursor: "pointer", padding: "5px", backgroundColor: "#3174ad", color: "white", borderRadius: "5px" }}
+      title={`${event.title}\n${event.description}\nParticipants: ${event.participants.join(", ")}`}
+      onClick={() => handleDeleteEvent(event._id)}
     >
       {event.title}
     </div>
