@@ -1,4 +1,4 @@
-import React, { cloneElement, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
@@ -13,44 +13,21 @@ const MyCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const navigate = useNavigate();
   console.log(events, "events");
-  useEffect(() => {
-    // Check authentication status when component mounts
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/auth/status", {
-          credentials: "include",
-        });
-        const data = await response.json();
 
-        if (!data.authenticated) {
-          // If not authenticated, redirect to home page
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error checking auth status:", error);
-        navigate("/");
-      }
-    };
-
-    checkAuth();
-
-    fetchEvents();
-  }, [navigate]);
   const fetchEvents = async () => {
     const response = await fetch("http://localhost:5000/get-events", {
       credentials: "include",
     });
     const data = await response.json();
-    console.log(data, "data");
     if (response.ok) {
       setEvents(
         data.map((event) => ({
           _id: event._id,
           title: event.title,
           description: event.description,
-          start: new Date(event.start).toISOString(), // Ensuring proper date format
+          start: new Date(event.start).toISOString(), 
           end: new Date(event.end).toISOString(),
-          participants: event.participants || [], // Default empty array if no participants
+          participants: event.participants || [],
           sessionNotes: event.sessionNotes || "",
           googleEventId: event.googleEventId || "",
           createdAt: new Date(event.createdAt).toISOString(),
@@ -60,6 +37,7 @@ const MyCalendar = () => {
       );
     }
   };
+
   const handleSelectSlot = ({ start }) => {
     setSelectedDate(start);
     setIsModalOpen(true);
@@ -77,7 +55,7 @@ const MyCalendar = () => {
       });
 
       if (response.ok) {
-        await fetchEvents(); // Refresh events after adding new one
+        await fetchEvents(); 
         setIsModalOpen(false);
       } else {
         alert("Failed to add event");
@@ -87,6 +65,7 @@ const MyCalendar = () => {
       alert("Error adding event");
     }
   };
+  
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
